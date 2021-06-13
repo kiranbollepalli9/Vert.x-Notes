@@ -5,10 +5,10 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 
 public class MainVerticle extends AbstractVerticle {
-  public static void main(String[] args) {
-    Vertx vertx = Vertx.vertx();
-    vertx.deployVerticle(new MainVerticle());
-  }
+//  public static void main(String[] args) {
+//    Vertx vertx = Vertx.vertx();
+//    vertx.deployVerticle(new MainVerticle());
+//  }
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
@@ -19,7 +19,7 @@ public class MainVerticle extends AbstractVerticle {
     }).listen(8888, http -> {
       if (http.succeeded()) {
         startPromise.complete();
-        System.out.println("HTTP server started on port 8888");
+        System.out.println("HTTP server started port 8888");
       } else {
         startPromise.fail(http.cause());
       }
