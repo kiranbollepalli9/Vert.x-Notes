@@ -1,8 +1,6 @@
 package com.learning.vertx;
 
-import com.learning.vertx.stock.AssetAPI;
-import com.learning.vertx.stock.QuoteAPI;
-import com.learning.vertx.stock.WatchListAPI;
+import com.learning.vertx.stock.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -14,6 +12,9 @@ import org.slf4j.LoggerFactory;
 
 public class MainVerticle extends AbstractVerticle {
   private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
+  static {
+    System.setProperty(ConfigLoader.SERVER_PORT, "8901");
+  }
 
   private static void errorHandler(RoutingContext errorContext) {
     if (errorContext.failed()) {
@@ -30,6 +31,16 @@ public class MainVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
+
+    ConfigLoader.load(vertx)
+      .onFailure(startPromise::fail)
+      .onSuccess(brokerConfig -> {
+        LOG.debug("Load config is success {} ", brokerConfig);
+        setupHttpServerAndRoutes(startPromise, brokerConfig);
+      });
+  }
+
+  private void setupHttpServerAndRoutes(Promise<Void> startPromise, BrokerConfig brokerConfig) {
     Router restAPI = Router.router(vertx);
     restAPI.route()
       .handler(BodyHandler.create())
@@ -42,7 +53,7 @@ public class MainVerticle extends AbstractVerticle {
     vertx.createHttpServer()
       .requestHandler(restAPI)
       .exceptionHandler(exception -> LOG.error("Error : {}", exception.getMessage()))
-      .listen(Constants.PORT, http -> {
+      .listen(brokerConfig.getPort(), http -> {
         if (http.succeeded()) {
           startPromise.complete();
           LOG.debug("HTTP server started port {}", http.result().actualPort());
